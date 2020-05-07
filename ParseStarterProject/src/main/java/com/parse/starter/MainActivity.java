@@ -12,9 +12,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,10 +39,23 @@ import com.parse.SignUpCallback;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnKeyListener {
 
     Boolean _signUpModeActive = true;
     TextView _loginTextView;
+    EditText _usernameEditText;
+    EditText _passwordEditText;
+    ImageView _logoImageView;
+    RelativeLayout _backgroundLayout;
+
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
+            signUpClicked(v);
+        }
+        return false;
+    }
 
 
     @Override
@@ -47,7 +64,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         _loginTextView = (TextView) findViewById(R.id.loginTextView);
+        _usernameEditText = (EditText) findViewById(R.id.userNameEditText);
+        _passwordEditText = (EditText) findViewById(R.id.passwordEditText);
+        _passwordEditText.setOnKeyListener(this);
         _loginTextView.setOnClickListener(this);
+        _logoImageView = (ImageView) findViewById(R.id.logoImageView);
+        _backgroundLayout = (RelativeLayout) findViewById(R.id.backgroundLayout);
+        _logoImageView.setOnClickListener(this);
+        _backgroundLayout.setOnClickListener(this);
 
         ParseAnalytics.trackAppOpenedInBackground(getIntent());
     }
@@ -56,8 +80,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.loginTextView) {
-            Button signupButton = (Button) findViewById(R.id.signupButton);
 
+            Button signupButton = (Button) findViewById(R.id.signupButton);
             if (_signUpModeActive) {
                 _signUpModeActive = false;
                 signupButton.setText("Login");
@@ -67,21 +91,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 signupButton.setText("Sign up");
                 _loginTextView.setText("or, Login");
             }
+        } else if ((v.getId() == R.id.logoImageView) || (v.getId() == R.id.backgroundLayout)){
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         }
     }
 
     public void signUpClicked(View view) {
-        EditText username = (EditText) findViewById(R.id.userNameEditText);
-        EditText password = (EditText) findViewById(R.id.passwordEditText);
 
-        if ((username.getText().toString().matches("")) || (password.getText().toString().matches(""))) {
+        if ((_usernameEditText.getText().toString().matches("")) || (_passwordEditText.getText().toString().matches(""))) {
             Toast.makeText(this, "A username and a password are required", Toast.LENGTH_SHORT).show();
         } else {
             if (_signUpModeActive) {
                 //signup
                 ParseUser user = new ParseUser();
-                user.setUsername(username.getText().toString());
-                user.setPassword(password.getText().toString());
+                user.setUsername(_usernameEditText.getText().toString());
+                user.setPassword(_passwordEditText.getText().toString());
 
                 user.signUpInBackground(new SignUpCallback() {
                     @Override
@@ -95,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
             } else {
                 //login
-                ParseUser.logInInBackground(username.getText().toString(), password.getText().toString(), new LogInCallback() {
+                ParseUser.logInInBackground(_usernameEditText.getText().toString(), _passwordEditText.getText().toString(), new LogInCallback() {
                     @Override
                     public void done(ParseUser user, ParseException e) {
                         if (user != null) {
