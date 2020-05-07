@@ -49,6 +49,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RelativeLayout _backgroundLayout;
 
 
+    public void showUserList() {
+        Intent intent = new Intent(getApplicationContext(), UserListActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -72,6 +77,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         _backgroundLayout = (RelativeLayout) findViewById(R.id.backgroundLayout);
         _logoImageView.setOnClickListener(this);
         _backgroundLayout.setOnClickListener(this);
+
+
+        //check to see if there is a user already logged in
+        if (ParseUser.getCurrentUser() != null) {
+            showUserList();
+        }
 
         ParseAnalytics.trackAppOpenedInBackground(getIntent());
     }
@@ -113,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void done(ParseException e) {
                         if (e == null) {
                             Log.i("Signup status", "Successful");
+                            showUserList();
                         } else {
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
@@ -125,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void done(ParseUser user, ParseException e) {
                         if (user != null) {
                             Log.i("Login status", "successful");
+                            showUserList();
                         } else {
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
