@@ -16,6 +16,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -41,10 +43,22 @@ public class UserListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
 
+        setTitle("User Feed");
+
         final ListView listView = (ListView) findViewById(R.id.listView);
         final ArrayList<String> userNames = new ArrayList<>();
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, userNames);
 
+
+        //WHEN CLICK ON USER GO TO USERFEEDACTIVITY TO SEE THEIR PHOTOS
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), UserFeedActivity.class);
+                intent.putExtra("username", userNames.get(position));
+                startActivity(intent);
+            }
+        });
 
         //DISPLAY A LIST OF USERS IN LISTVIEW
         ParseQuery<ParseUser> query = ParseUser.getQuery();
@@ -84,7 +98,13 @@ public class UserListActivity extends AppCompatActivity {
             } else {
                 getPhoto();
             }
+        } else if (item.getItemId() == R.id.logout) {
+            ParseUser.logOut();
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            startActivity(intent);
         }
+
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -122,6 +142,7 @@ public class UserListActivity extends AppCompatActivity {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 byte[] byteArray = stream.toByteArray();
                 ParseFile file = new ParseFile("image.png", byteArray);
+                Log.i("PareseFile", file.toString());
                 ParseObject object = new ParseObject("Image");
                 object.put("image", file);
                 object.put("username", ParseUser.getCurrentUser().getUsername());
